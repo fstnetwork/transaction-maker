@@ -24,6 +24,7 @@
     "csv-parser": "^2.3.2",
     "esm": "^3.2.25",
     "ethers": "^4.0.47",
+    "level": "^6.0.1",
     "lodash": "^4.17.15",
     "strip-bom-stream": "^4.0.0"
   },
