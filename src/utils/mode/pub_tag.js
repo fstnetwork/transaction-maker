@@ -75,12 +75,27 @@ function modePubAndTag() {
         (err, db_tag) => {
           if (err) throw err;
 
-          if (process.env.MASTER_PK_HEX_STR === undefined) {
-            consola.error("no MASTER_PK_HEX_STR env is assigned");
-            process.exit(1);
+          let master_pk = null;
+
+          try {
+            const file_master_pk_json = fs.readFileSync(
+              path.resolve(__dirname, "..", "..", "..", "master_pk")
+            );
+            master_pk = JSON.parse(file_master_pk_json).master_pk;
+          } catch (err) {
+            consola.error(err);
           }
 
-          const master_wallet = new Wallet(process.env.MASTER_PK_HEX_STR);
+          if (master_pk === null) {
+            if (process.env.MASTER_PK_HEX_STR === undefined) {
+              consola.error("no MASTER_PK_HEX_STR env is assigned");
+              process.exit(1);
+            } else {
+              master_pk = process.env.MASTER_PK_HEX_STR;
+            }
+          }
+
+          const master_wallet = new Wallet(master_pk);
 
           consola.success("Master wallet address", master_wallet.address);
 
