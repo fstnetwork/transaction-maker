@@ -6,6 +6,8 @@ const argv = require("minimist")(process.argv.slice(2));
 
 const json_rpc_url = argv.jsonrpc_http;
 
+consola.success("JSON RPC:", json_rpc_url);
+
 let networkId = null;
 
 const provider = new ethers.providers.FallbackProvider([

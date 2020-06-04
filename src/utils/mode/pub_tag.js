@@ -12,7 +12,9 @@ const Wallet = ethers.Wallet;
 
 const level = require("level");
 
-async function check(tags_from_csv, db_tag, db_pub) {
+const { scan_publishers } = require("../batch/publisher_batch");
+
+async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
   const [tag_in_db_map, pub_in_db_map] = await Promise.all([
     new Promise((res, rej) => {
       const tag_in_db_map = {};
@@ -62,6 +64,24 @@ async function check(tags_from_csv, db_tag, db_pub) {
   }
 
   consola.info("New publishers", new_pubs);
+
+  const after_import_pub_in_db_map = await new Promise((res, rej) => {
+    const pub_in_db_map = {};
+
+    db_pub
+      .createReadStream()
+      .on("data", (data) => {
+        pub_in_db_map[data.key] = data.value;
+      })
+      .on("error", (err) => {
+        rej(err);
+      })
+      .on("close", () => {
+        res(pub_in_db_map);
+      });
+  });
+
+  scan_publishers(after_import_pub_in_db_map, master_wallet);
 }
 
 function modePubAndTag() {
@@ -97,7 +117,7 @@ function modePubAndTag() {
 
           const master_wallet = new Wallet(master_pk);
 
-          consola.success("Master wallet address", master_wallet.address);
+          consola.success("Master wallet address:", master_wallet.address);
 
           const tags = [];
           fs.createReadStream(argv.tags)
@@ -106,7 +126,7 @@ function modePubAndTag() {
             .on("data", (data) => tags.push(data))
             .on("end", () => {
               consola.success("Tags are loaded");
-              check(tags, db_tag, db_pub);
+              check(tags, db_tag, db_pub, master_wallet);
             });
         }
       );

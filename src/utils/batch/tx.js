@@ -1,5 +1,3 @@
-const ut = require("util");
-
 const consola = require("consola");
 
 const { utils } = require("ethers");
