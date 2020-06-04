@@ -12,7 +12,13 @@ const Wallet = ethers.Wallet;
 
 const level = require("level");
 
-const { scan_publishers } = require("../batch/publisher_batch");
+const version_id = argv.version_id;
+
+const {
+  scan_publishers_and_fill_resource,
+} = require("../batch/publisher_batch");
+
+const { publish_tags } = require("../batch/tag_batch");
 
 async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
   const [tag_in_db_map, pub_in_db_map] = await Promise.all([
@@ -49,6 +55,7 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
   ]);
 
   const new_pubs = [];
+  const new_tags = [];
 
   for (const tag of tags_from_csv) {
     if (pub_in_db_map[tag.publisher_id] === undefined) {
@@ -61,9 +68,20 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
         pk: new_wallet.privateKey,
       });
     }
+
+    if (tag_in_db_map[`${tag.tag_name}:${version_id}`] === undefined) {
+      await db_tag.put(`${tag.tag_name}:${version_id}`, "deploying");
+
+      new_tags.push({
+        publisher_wallet: new Wallet(await db_pub.get(tag.publisher_id)),
+        tag_name: `${tag.tag_name}:${version_id}`,
+        tag_symbol: `${tag.tag_name.slice(0, 6)}:${version_id.slice(0, 6)}`,
+      });
+    }
   }
 
   consola.info("New publishers", new_pubs);
+  consola.info("New tags", new_tags);
 
   const after_import_pub_in_db_map = await new Promise((res, rej) => {
     const pub_in_db_map = {};
@@ -81,7 +99,12 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
       });
   });
 
-  scan_publishers(after_import_pub_in_db_map, master_wallet);
+  await scan_publishers_and_fill_resource(
+    after_import_pub_in_db_map,
+    master_wallet
+  );
+
+  await publish_tags(new_tags, db_tag);
 }
 
 function modePubAndTag() {

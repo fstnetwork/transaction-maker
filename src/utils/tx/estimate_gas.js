@@ -21,7 +21,7 @@ async function estimateGasPromise(
 
   const tmp_tx_obj = {
     from: from_address,
-    to: to_address,
+    to: to_address === null ? undefined : to_address,
     data: data_hex_string,
     value: value_wei_dec_string,
     gasPrice: gasPrice,

@@ -3,6 +3,8 @@ const BN = require("bignumber.js");
 const erc20_transfer_func_signature = "0xa9059cbb";
 const erc20_get_balance_func_signature = "0x70a08231";
 
+const { getDeployTransactionData } = require("../contract/tag");
+
 function encodeTransferToken(receiver_address, token_value_wei_dec_string) {
   if (
     typeof receiver_address !== "string" ||
@@ -63,9 +65,20 @@ function encodeGetVoucherSymbol() {
   return `0x95d89b41`;
 }
 
+function encodeTagDeploy(name, symbol) {
+  const tmp = getDeployTransactionData(name, symbol);
+
+  if (!tmp.startsWith("0x")) {
+    return `0x${tmp}`;
+  }
+
+  return tmp;
+}
+
 module.exports = {
   encodeTransferToken,
   encodeGetBalance,
   encodeGetVoucherName,
   encodeGetVoucherSymbol,
+  encodeTagDeploy,
 };

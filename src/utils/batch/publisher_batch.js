@@ -10,7 +10,10 @@ const { acc, go } = require("../batch/tx");
 
 const { makeUnsignedTransactionObjectPromise } = require("../tx/tx_obj_maker");
 
-async function scan_publishers(publishers_map, master_wallet) {
+async function scan_publishers_and_fill_resource(
+  publishers_map,
+  master_wallet
+) {
   const batch_name = get_bytes(16);
 
   const provider = await getProvider();
@@ -20,8 +23,8 @@ async function scan_publishers(publishers_map, master_wallet) {
     const publisher_wallet = new Wallet(publisher_pk, provider);
     const publisher_eth_balance = await publisher_wallet.getBalance();
 
-    if (publisher_eth_balance.lt("15000000000000000000")) {
-      consola.warn("Less than 15 ETH", publisher_wallet.address);
+    if (publisher_eth_balance.lt("5000000000000000000")) {
+      consola.warn("Less than 5 ETH", publisher_wallet.address);
 
       const unsigned_tx = await makeUnsignedTransactionObjectPromise(
         master_wallet.address,
@@ -40,7 +43,7 @@ async function scan_publishers(publishers_map, master_wallet) {
     }
   }
 
-  go(batch_name);
+  await go(batch_name);
 }
 
-module.exports = { scan_publishers };
+module.exports = { scan_publishers_and_fill_resource };
