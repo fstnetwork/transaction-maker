@@ -22,7 +22,7 @@ async function makeUnsignedTransactionObjectPromise(
 
     const transaction_obj = {
       ...estimated_result,
-      to: to_address,
+      to: to_address === null ? undefined : to_address,
       data: data_hex_string || "0x",
       value: `0x${new BN(value_wei_dec_string).toString(16)}`,
     };

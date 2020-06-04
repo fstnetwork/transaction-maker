@@ -12,7 +12,12 @@ const Wallet = ethers.Wallet;
 
 const level = require("level");
 
-const version_id = argv.version_id;
+const { get_bytes } = require("../rand");
+
+let version_id = argv.version_id;
+if (version_id === "rand") {
+  version_id = get_bytes(4);
+}
 
 const {
   scan_publishers_and_fill_resource,
@@ -69,10 +74,14 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
       });
     }
 
-    if (tag_in_db_map[`${tag.tag_name}:${version_id}`] === undefined) {
+    if (
+      tag_in_db_map[`${tag.tag_name}:${version_id}`] === undefined ||
+      tag_in_db_map[`${tag.tag_name}:${version_id}`] === "deploying"
+    ) {
       await db_tag.put(`${tag.tag_name}:${version_id}`, "deploying");
 
       new_tags.push({
+        publisher_id: tag.publisher_id,
         publisher_wallet: new Wallet(await db_pub.get(tag.publisher_id)),
         tag_name: `${tag.tag_name}:${version_id}`,
         tag_symbol: `${tag.tag_name.slice(0, 6)}:${version_id.slice(0, 6)}`,
@@ -80,8 +89,8 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
     }
   }
 
-  consola.info("New publishers", new_pubs);
-  consola.info("New tags", new_tags);
+  consola.info("New publishers:", new_pubs);
+  consola.info("New tags:", new_tags);
 
   const after_import_pub_in_db_map = await new Promise((res, rej) => {
     const pub_in_db_map = {};
