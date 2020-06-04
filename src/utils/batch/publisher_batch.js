@@ -18,30 +18,42 @@ async function scan_publishers_and_fill_resource(
 
   const provider = await getProvider();
 
-  for (const k in publishers_map) {
-    const publisher_pk = publishers_map[k];
-    const publisher_wallet = new Wallet(publisher_pk, provider);
-    const publisher_eth_balance = await publisher_wallet.getBalance();
+  await Promise.all(
+    Object.keys(publishers_map)
+      .map((k) => publishers_map[k])
+      .map((publisher_pk) => {
+        const af = async () => {
+          const publisher_wallet = new Wallet(publisher_pk, provider);
+          const publisher_eth_balance = await publisher_wallet.getBalance();
 
-    if (publisher_eth_balance.lt("5000000000000000000")) {
-      consola.warn("Less than 5 ETH", publisher_wallet.address);
+          if (publisher_eth_balance.lt("5000000000000000000")) {
+            consola.info(
+              "Less than 5 ETH:",
+              publisher_wallet.address.toLowerCase()
+            );
 
-      const unsigned_tx = await makeUnsignedTransactionObjectPromise(
-        master_wallet.address,
-        publisher_wallet.address,
-        "0x",
-        "15000000000000000000",
-        true,
-        "21000"
-      );
+            const unsigned_tx = await makeUnsignedTransactionObjectPromise(
+              master_wallet.address.toLowerCase(),
+              publisher_wallet.address.toLowerCase(),
+              "0x",
+              "15000000000000000000",
+              true,
+              "21000"
+            );
 
-      const signed_tx = await master_wallet.sign(unsigned_tx);
+            const signed_tx = await master_wallet.sign(unsigned_tx);
 
-      await acc(batch_name, signed_tx, false);
-    } else {
-      consola.success("OK", publisher_wallet.address);
-    }
-  }
+            await acc(batch_name, signed_tx, false);
+          } else {
+            consola.success("ETH OK:", publisher_wallet.address.toLowerCase());
+          }
+
+          return 0;
+        };
+
+        return af();
+      })
+  );
 
   await go(batch_name);
 }

@@ -148,7 +148,7 @@ async function go(batch_name) {
       })
     );
 
-    consola.info("go", batch_name, "done");
+    consola.success("go", batch_name, "done");
 
     return true;
   } catch (err) {

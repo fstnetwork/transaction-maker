@@ -14,7 +14,7 @@ const level = require("level");
 
 const { get_bytes } = require("../rand");
 
-let version_id = argv.version_id;
+let version_id = argv.version_id + "";
 if (version_id === "rand") {
   version_id = get_bytes(4);
 }
@@ -145,7 +145,10 @@ function modePubAndTag() {
 
       const master_wallet = new Wallet(master_pk);
 
-      consola.success("Master wallet address:", master_wallet.address);
+      consola.success(
+        "Master wallet address:",
+        master_wallet.address.toLowerCase()
+      );
 
       const tags = [];
       fs.createReadStream(argv.tags)

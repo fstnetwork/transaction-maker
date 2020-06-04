@@ -2,9 +2,15 @@ const consola = require("consola");
 
 const Bottleneck = require("bottleneck");
 
-const nonce_limiter = new Bottleneck({
-  maxConcurrent: 1,
-  minTime: 1,
+const limiterMap = {};
+
+"0123456789abcdef".split("").forEach((c1) => {
+  "0123456789abcdef".split("").forEach((c2) => {
+    limiterMap[`${c1}${c2}`] = new Bottleneck({
+      maxConcurrent: 1,
+      minTime: 1,
+    });
+  });
 });
 
 const { getProvider } = require("./rpc");
@@ -22,18 +28,18 @@ async function internal_get_nonce_from_cache(address) {
     );
     nonces.set(address, tmpNonce + 1);
     nonces.ttl(address, 1800);
-    consola.info("nonce", address, tmpNonce);
+    consola.info("Get nonce:", address, tmpNonce);
     return tmpNonce;
   } else {
     nonces.set(address, nonce + 1);
     nonces.ttl(address, 1800);
-    consola.info("nonce", address, nonce);
+    consola.info("Get nonce:", address, nonce);
     return nonce;
   }
 }
 
 async function getNoncePromise(address) {
-  return await nonce_limiter.schedule(() =>
+  return await limiterMap[address.replace("0x", "").slice(0, 2)].schedule(() =>
     internal_get_nonce_from_cache(address.toLowerCase())
   );
 }
