@@ -102,3 +102,10 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Level DB
+level_db_pub/
+level_db_tag/
+
+# Key
+master_pk
