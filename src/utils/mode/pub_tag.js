@@ -94,7 +94,10 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
         publisher_wallet: publisher_wallet,
         publisher_address: publisher_wallet.address.toLowerCase(),
         tag_uniq_name: `${tag.tag_uniq_name}:${version_id}`,
-        tag_symbol: `${tag.tag_uniq_name.slice(0, 8)}:${version_id.slice(0, 8)}`,
+        tag_symbol: `${tag.tag_uniq_name.slice(0, 8)}:${version_id.slice(
+          0,
+          8
+        )}`,
       });
     }
   }
@@ -119,7 +122,12 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
       };
     })
     .forEach((t) => {
-      consola.info("New tag:", t.tag_uniq_name, t.publisher_id, t.publisher_address);
+      consola.info(
+        "New tag:",
+        t.tag_uniq_name,
+        t.publisher_id,
+        t.publisher_address
+      );
     });
 
   const after_import_pub_in_db_map = await new Promise((res, rej) => {
