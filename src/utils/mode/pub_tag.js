@@ -82,10 +82,10 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
     }
 
     if (
-      tag_in_db_map[`${tag.tag_name}:${version_id}`] === undefined ||
-      tag_in_db_map[`${tag.tag_name}:${version_id}`] === "deploying"
+      tag_in_db_map[`${tag.tag_uniq_name}:${version_id}`] === undefined ||
+      tag_in_db_map[`${tag.tag_uniq_name}:${version_id}`] === "deploying"
     ) {
-      await db_tag.put(`${tag.tag_name}:${version_id}`, "deploying");
+      await db_tag.put(`${tag.tag_uniq_name}:${version_id}`, "deploying");
 
       const publisher_wallet = new Wallet(await db_pub.get(tag.publisher_id));
 
@@ -93,8 +93,8 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
         publisher_id: tag.publisher_id,
         publisher_wallet: publisher_wallet,
         publisher_address: publisher_wallet.address.toLowerCase(),
-        tag_name: `${tag.tag_name}:${version_id}`,
-        tag_symbol: `${tag.tag_name.slice(0, 8)}:${version_id.slice(0, 8)}`,
+        tag_uniq_name: `${tag.tag_uniq_name}:${version_id}`,
+        tag_symbol: `${tag.tag_uniq_name.slice(0, 8)}:${version_id.slice(0, 8)}`,
       });
     }
   }
@@ -115,11 +115,11 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
       return {
         publisher_id: t.publisher_id,
         publisher_address: t.publisher_address,
-        tag_name: t.tag_name,
+        tag_uniq_name: t.tag_uniq_name,
       };
     })
     .forEach((t) => {
-      consola.info("New tag:", t.tag_name, t.publisher_id, t.publisher_address);
+      consola.info("New tag:", t.tag_uniq_name, t.publisher_id, t.publisher_address);
     });
 
   const after_import_pub_in_db_map = await new Promise((res, rej) => {
