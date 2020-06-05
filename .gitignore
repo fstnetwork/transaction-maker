@@ -109,3 +109,7 @@ level_db_tag/
 
 # Key
 master_pk
+
+# Scripts
+pub_tag.sh
+attach_tag.sh
