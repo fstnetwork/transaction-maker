@@ -14,7 +14,7 @@ async function scan_publishers_and_fill_resource(
   publishers_map,
   master_wallet
 ) {
-  const batch_name = get_bytes(16);
+  const batch_name = get_bytes(8);
 
   const provider = await getProvider();
 

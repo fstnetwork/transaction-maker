@@ -16,7 +16,7 @@ const limiterMap = {};
 const { getProvider } = require("./rpc");
 
 const NodeCache = require("node-cache");
-const nonces = new NodeCache({ stdTTL: 1800, checkperiod: 400 });
+const nonces = new NodeCache({ stdTTL: 3600, checkperiod: 400 });
 
 async function internal_get_nonce_from_cache(address) {
   const nonce = nonces.get(address);
@@ -27,12 +27,12 @@ async function internal_get_nonce_from_cache(address) {
       "pending"
     );
     nonces.set(address, tmpNonce + 1);
-    nonces.ttl(address, 1800);
+    nonces.ttl(address, 3600);
     consola.info("Get nonce:", address, tmpNonce);
     return tmpNonce;
   } else {
     nonces.set(address, nonce + 1);
-    nonces.ttl(address, 1800);
+    nonces.ttl(address, 3600);
     consola.info("Get nonce:", address, nonce);
     return nonce;
   }

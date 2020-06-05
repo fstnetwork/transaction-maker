@@ -38,26 +38,24 @@ async function acc(batch_name, signed_tx, eager) {
             batchMap[batch_name][from] = [];
           }
 
+          batchMap[batch_name][from].push({
+            signed_tx,
+            txobj,
+          });
+
+          batchMap[batch_name][from].sort(
+            (a, b) => Number(a.txobj.nonce) - Number(b.txobj.nonce)
+          );
+
           if (eager === true) {
-            batchMap[batch_name][from].push({
-              signed_tx,
-              txobj,
-            });
-
-            batchMap[batch_name][from].sort(
-              (a, b) => Number(a.txobj.nonce) - Number(b.txobj.nonce)
-            );
-
             return await go_eager_queue(batchMap[batch_name][from], batch_name);
           } else {
-            batchMap[batch_name][from].push({
-              signed_tx,
-              txobj,
-            });
-
-            batchMap[batch_name][from].sort(
-              (a, b) => Number(a.txobj.nonce) - Number(b.txobj.nonce)
-            );
+            if (batchMap[batch_name][from].length >= 40) {
+              return await go_eager_queue(
+                batchMap[batch_name][from],
+                batch_name
+              );
+            }
 
             return { txobj, in_batch: true };
           }
@@ -89,7 +87,7 @@ async function go_eager_queue(queueObj, batch_name) {
         await submitSignedTransactionAsyncPromise(qp.signed_tx, null);
 
         consola.info(
-          "go_eager",
+          "Go eager:",
           batch_name,
           qp.txobj.from.toLowerCase(),
           qp.txobj.nonce
@@ -97,11 +95,11 @@ async function go_eager_queue(queueObj, batch_name) {
       } catch (_) {}
     }
 
-    consola.info("go_eager", batch_name, "done");
+    consola.info("Go eager:", batch_name, "done");
 
     return true;
   } catch (err) {
-    consola.error("go_eager_queue", queueObj);
+    consola.error("Go eager:", queueObj);
     throw err;
   }
 }
@@ -137,7 +135,7 @@ async function go(batch_name) {
               await submitSignedTransactionAsyncPromise(qp.signed_tx, null);
 
               consola.info(
-                "go",
+                "Go:",
                 batch_name,
                 qp.txobj.from.toLowerCase(),
                 qp.txobj.nonce
@@ -148,11 +146,11 @@ async function go(batch_name) {
       })
     );
 
-    consola.success("go", batch_name, "done");
+    consola.success("Go:", batch_name, "done");
 
     return true;
   } catch (err) {
-    consola.error("go", batch_name, err);
+    consola.error("Go:", batch_name, err);
   }
 }
 

@@ -18,7 +18,7 @@ async function publish_tags(new_tags, db_tag) {
     return;
   }
 
-  const batch_name = get_bytes(16);
+  const batch_name = get_bytes(8);
 
   const provider = await getProvider();
 
@@ -30,7 +30,7 @@ async function publish_tags(new_tags, db_tag) {
         const unsigned_tx = await makeUnsignedTransactionObjectPromise(
           publisher_wallet.address.toLowerCase(),
           null,
-          encodeTagDeploy(tag.tag_name, tag.tag_symbol),
+          encodeTagDeploy(tag.tag_uniq_name, tag.tag_symbol),
           "0",
           true,
           "862764"
@@ -40,20 +40,22 @@ async function publish_tags(new_tags, db_tag) {
 
         await acc(batch_name, signed_tx, false);
 
-        consola.info("Pending:", tag.tag_name);
+        consola.info("Pending:", tag.tag_uniq_name);
 
         const txhash = utils.parseTransaction(signed_tx).hash.toLowerCase();
 
-        provider.waitForTransaction(txhash, 2).then(async (receipt) => {
+        provider.waitForTransaction(txhash, 1).then(async (receipt) => {
           const tag_object = {
             address: receipt.contractAddress.toLowerCase(),
             publisher_address: publisher_wallet.address.toLowerCase(),
+            publisher_pk: publisher_wallet.privateKey,
             publisher_id: tag.publisher_id,
+            tag_uniq_name: tag.tag_uniq_name,
           };
 
-          await db_tag.put(tag.tag_name, JSON.stringify(tag_object));
+          await db_tag.put(tag.tag_uniq_name, JSON.stringify(tag_object));
 
-          consola.success("Deployed:", tag.tag_name);
+          consola.success("Deployed:", tag.tag_uniq_name);
         });
       };
 
