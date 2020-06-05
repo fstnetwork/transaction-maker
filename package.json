@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write ./**/*.json && prettier --write ./**/*.js",
-    "pub_tag": "node src/index.js --mode pub_tag --root_dir ./ --tags ./csv_template/tag.csv --version_id 20200606 --jsonrpc_http https://api.preview.fst.network/ethereum/jsonrpc-http"
+    "pub_tag": "node src/index.js --mode pub_tag --root_dir ./ --tags ./csv_template/tag.csv --version_id 20200606 --jsonrpc_http https://api.preview.fst.network/ethereum/jsonrpc-http",
+    "attach_tag": "node src/index.js --mode attach_tag --root_dir ./ --attaches ./csv_template/attach.csv --version_id 20200606 --jsonrpc_http https://api.preview.fst.network/ethereum/jsonrpc-http"
   },
   "repository": {
     "type": "git",
