@@ -60,18 +60,25 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
   ]);
 
   const new_pubs = [];
+  const new_pubs_map = {};
   const new_tags = [];
 
   for (const tag of tags_from_csv) {
-    if (pub_in_db_map[tag.publisher_id] === undefined) {
+    if (
+      pub_in_db_map[tag.publisher_id] === undefined &&
+      new_pubs_map[tag.publisher_id] === undefined
+    ) {
       const new_wallet = Wallet.createRandom();
 
       await db_pub.put(tag.publisher_id, new_wallet.privateKey);
 
       new_pubs.push({
         publisher_id: tag.publisher_id,
-        pk: new_wallet.privateKey,
+        publisher_wallet: new_wallet,
+        publisher_address: new_wallet.address.toLowerCase(),
       });
+
+      new_pubs_map[tag.publisher_id] = new_wallet;
     }
 
     if (
@@ -80,17 +87,40 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
     ) {
       await db_tag.put(`${tag.tag_name}:${version_id}`, "deploying");
 
+      const publisher_wallet = new Wallet(await db_pub.get(tag.publisher_id));
+
       new_tags.push({
         publisher_id: tag.publisher_id,
-        publisher_wallet: new Wallet(await db_pub.get(tag.publisher_id)),
+        publisher_wallet: publisher_wallet,
+        publisher_address: publisher_wallet.address.toLowerCase(),
         tag_name: `${tag.tag_name}:${version_id}`,
-        tag_symbol: `${tag.tag_name.slice(0, 6)}:${version_id.slice(0, 6)}`,
+        tag_symbol: `${tag.tag_name.slice(0, 8)}:${version_id.slice(0, 8)}`,
       });
     }
   }
 
-  consola.info("New publishers:", new_pubs);
-  consola.info("New tags:", new_tags);
+  new_pubs
+    .map((p) => {
+      return {
+        id: p.publisher_id,
+        address: p.publisher_address,
+      };
+    })
+    .forEach((p) => {
+      consola.info("New publisher:", p.id, p.address);
+    });
+
+  new_tags
+    .map((t) => {
+      return {
+        publisher_id: t.publisher_id,
+        publisher_address: t.publisher_address,
+        tag_name: t.tag_name,
+      };
+    })
+    .forEach((t) => {
+      consola.info("New tag:", t.tag_name, t.publisher_id, t.publisher_address);
+    });
 
   const after_import_pub_in_db_map = await new Promise((res, rej) => {
     const pub_in_db_map = {};
