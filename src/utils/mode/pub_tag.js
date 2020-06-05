@@ -7,8 +7,7 @@ const consola = require("consola");
 const csv = require("csv-parser");
 const stripBom = require("strip-bom-stream");
 
-const ethers = require("ethers");
-const Wallet = ethers.Wallet;
+const { Wallet } = require("ethers");
 
 const level = require("level");
 

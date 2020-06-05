@@ -6,7 +6,7 @@ const Bottleneck = require("bottleneck");
 
 const limiter = new Bottleneck({
   maxConcurrent: 40,
-  minTime: 20,
+  minTime: 1,
 });
 
 async function submitSignedTransactionSyncPromise(

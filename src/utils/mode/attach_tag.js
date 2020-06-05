@@ -7,8 +7,7 @@ const consola = require("consola");
 const csv = require("csv-parser");
 const stripBom = require("strip-bom-stream");
 
-const ethers = require("ethers");
-const Wallet = ethers.Wallet;
+const { Wallet } = require("ethers");
 
 const level = require("level");
 
@@ -60,12 +59,11 @@ async function check(attaches_from_csv, db_tag, db_pub) {
       tag_in_db_map[attach.tag_uniq_name + ":" + version_id]
     );
 
+    tag_info.publisher_wallet = new Wallet(tag_info.publisher_pk);
+
     return {
       tag_info,
-      from:
-        attach.attach_from === "publisher"
-          ? tag_info.publisher_address
-          : attach.attach_from,
+      from: attach.attach_from,
       to: attach.attach_to,
       amount_dec: (attach.attach_amount === "" ? 0 : attach.attach_amount) + "",
     };
