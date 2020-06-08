@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const argv = require("minimist")(process.argv.slice(2));
+const argv = require("../argv").argv();
 
 const consola = require("consola");
 const csv = require("csv-parser");
@@ -15,12 +15,12 @@ const { get_bytes } = require("../rand");
 
 const { fire_attaches } = require("../batch/attach_batch");
 
-let version_id = argv.version_id + "";
-if (version_id === "rand") {
-  version_id = get_bytes(4);
-}
+async function check(argv, _attaches, db_tag, db_pub) {
+  let version_id = argv.version_id + "";
+  if (version_id === "rand") {
+    version_id = get_bytes(4);
+  }
 
-async function check(attaches_from_csv, db_tag, db_pub) {
   const [tag_in_db_map, pub_in_db_map] = await Promise.all([
     new Promise((res, rej) => {
       const tag_in_db_map = {};
@@ -54,7 +54,7 @@ async function check(attaches_from_csv, db_tag, db_pub) {
     }),
   ]);
 
-  const attach_missions = attaches_from_csv.map((attach) => {
+  const attach_missions = _attaches.map((attach) => {
     const tag_info = JSON.parse(
       tag_in_db_map[attach.tag_uniq_name + ":" + version_id]
     );
@@ -74,24 +74,27 @@ async function check(attaches_from_csv, db_tag, db_pub) {
   await fire_attaches(attach_missions);
 }
 
-function modeAttachTag() {
-  level(path.resolve(argv.root_dir, "level_db_pub"), (err, db_pub) => {
-    if (err) throw err;
+async function modeAttachTag(argv, is_csv, attaches_data) {
+  const db_pub = level(path.resolve(argv.root_dir, "level_db_pub"));
+  const db_tag = level(path.resolve(argv.root_dir, "level_db_tag"));
 
-    level(path.resolve(argv.root_dir, "level_db_tag"), (err, db_tag) => {
-      if (err) throw err;
+  if (is_csv === true) {
+    await check(argv, attaches_data, db_tag, db_pub);
+  } else {
+    const attaches = [];
 
-      const attaches = [];
+    await new Promise((res) => {
       fs.createReadStream(argv.attaches)
         .pipe(stripBom())
         .pipe(csv())
         .on("data", (data) => attaches.push(data))
-        .on("end", () => {
+        .on("end", async () => {
           consola.success("Attaches are loaded");
-          check(attaches, db_tag, db_pub);
+          await check(argv, attaches, db_tag, db_pub);
+          res(true);
         });
     });
-  });
+  }
 }
 
 module.exports = { modeAttachTag };

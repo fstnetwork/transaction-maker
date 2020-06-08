@@ -2,7 +2,7 @@ const consola = require("consola");
 
 const ethers = require("ethers");
 
-const argv = require("minimist")(process.argv.slice(2));
+const argv = require("../argv").argv();
 
 const json_rpc_url = argv.jsonrpc_http;
 
