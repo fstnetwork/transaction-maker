@@ -1,6 +1,6 @@
 {
   "name": "transaction-maker",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "",
   "main": "./src/lib.js",
   "scripts": {
