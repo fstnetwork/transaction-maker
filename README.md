@@ -3,7 +3,7 @@
 ## Mode pub_tag
 
 ```sh
-npm i
+npm i https://github.com/fstnetwork/transaction-maker
 
 export MASTER_PK_HEX_STR=0xabcdef0123456789...
 
@@ -18,7 +18,7 @@ node src/index.js \
 ## Mode attach_tag
 
 ```sh
-npm i
+npm i https://github.com/fstnetwork/transaction-maker
 
 node src/index.js \
   --mode attach_tag \
@@ -31,6 +31,8 @@ node src/index.js \
 ## Lib
 
 ### Mode pub_tag / attach_tag
+
+> Please set the environment variable `MASTER_PK_HEX_STR=0xabcdef0123456789...` while using the library
 
 `publisher_id` can be any unique string
 
