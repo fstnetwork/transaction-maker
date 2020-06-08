@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const argv = require("minimist")(process.argv.slice(2));
+const argv = require("../argv").argv();
 
 const consola = require("consola");
 const csv = require("csv-parser");
@@ -13,18 +13,18 @@ const level = require("level");
 
 const { get_bytes } = require("../rand");
 
-let version_id = argv.version_id + "";
-if (version_id === "rand") {
-  version_id = get_bytes(4);
-}
-
 const {
   scan_publishers_and_fill_resource,
 } = require("../batch/publisher_batch");
 
 const { publish_tags } = require("../batch/tag_batch");
 
-async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
+async function check(argv, _tags, db_tag, db_pub, master_wallet) {
+  let version_id = argv.version_id + "";
+  if (version_id === "rand") {
+    version_id = get_bytes(4);
+  }
+
   const [tag_in_db_map, pub_in_db_map] = await Promise.all([
     new Promise((res, rej) => {
       const tag_in_db_map = {};
@@ -62,7 +62,7 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
   const new_pubs_map = {};
   const new_tags = [];
 
-  for (const tag of tags_from_csv) {
+  for (const tag of _tags) {
     if (
       pub_in_db_map[tag.publisher_id] === undefined &&
       new_pubs_map[tag.publisher_id] === undefined
@@ -153,51 +153,54 @@ async function check(tags_from_csv, db_tag, db_pub, master_wallet) {
   await publish_tags(new_tags, db_tag);
 }
 
-function modePubAndTag() {
-  level(path.resolve(argv.root_dir, "level_db_pub"), (err, db_pub) => {
-    if (err) throw err;
+async function modePubAndTag(argv, is_csv, tags_data) {
+  const db_pub = level(path.resolve(argv.root_dir, "level_db_pub"));
+  const db_tag = level(path.resolve(argv.root_dir, "level_db_tag"));
 
-    level(path.resolve(argv.root_dir, "level_db_tag"), (err, db_tag) => {
-      if (err) throw err;
+  let master_pk = null;
 
-      let master_pk = null;
+  try {
+    const file_master_pk_json = fs.readFileSync(
+      path.resolve(argv.root_dir, "master_pk")
+    );
+    master_pk = JSON.parse(file_master_pk_json).master_pk;
+  } catch (err) {
+    consola.error(err);
+  }
 
-      try {
-        const file_master_pk_json = fs.readFileSync(
-          path.resolve(argv.root_dir, "master_pk")
-        );
-        master_pk = JSON.parse(file_master_pk_json).master_pk;
-      } catch (err) {
-        consola.error(err);
-      }
+  if (master_pk === null) {
+    if (process.env.MASTER_PK_HEX_STR === undefined) {
+      consola.error("no MASTER_PK_HEX_STR env is assigned");
+      process.exit(1);
+    } else {
+      master_pk = process.env.MASTER_PK_HEX_STR;
+    }
+  }
 
-      if (master_pk === null) {
-        if (process.env.MASTER_PK_HEX_STR === undefined) {
-          consola.error("no MASTER_PK_HEX_STR env is assigned");
-          process.exit(1);
-        } else {
-          master_pk = process.env.MASTER_PK_HEX_STR;
-        }
-      }
+  const master_wallet = new Wallet(master_pk);
 
-      const master_wallet = new Wallet(master_pk);
+  consola.success(
+    "Master wallet address:",
+    master_wallet.address.toLowerCase()
+  );
 
-      consola.success(
-        "Master wallet address:",
-        master_wallet.address.toLowerCase()
-      );
+  if (is_csv === true) {
+    await check(argv, tags_data, db_tag, db_pub, master_wallet);
+  } else {
+    const tags = [];
 
-      const tags = [];
+    await new Promise((res) => {
       fs.createReadStream(argv.tags)
         .pipe(stripBom())
         .pipe(csv())
         .on("data", (data) => tags.push(data))
-        .on("end", () => {
+        .on("end", async () => {
           consola.success("Tags are loaded");
-          check(tags, db_tag, db_pub, master_wallet);
+          await check(argv, tags, db_tag, db_pub, master_wallet);
+          res(true);
         });
     });
-  });
+  }
 }
 
 module.exports = { modePubAndTag };

@@ -2,18 +2,18 @@
 
 const consola = require("consola");
 
-const argv = require("minimist")(process.argv.slice(2));
+const argv = require("./utils/argv").argv();
 
 const { modePubAndTag } = require("./utils/mode/pub_tag");
 const { modeAttachTag } = require("./utils/mode/attach_tag");
 
 function loadDB() {
   if (argv.mode === "pub_tag") {
-    modePubAndTag();
+    modePubAndTag(argv, false, null);
   }
 
   if (argv.mode === "attach_tag") {
-    modeAttachTag();
+    modeAttachTag(argv, false, null);
   }
 }
 

@@ -1,6 +1,6 @@
 const consola = require("consola");
 
-const argv = require("minimist")(process.argv.slice(2));
+const argv = require("../src/utils/argv").argv();
 
 const level = require("level");
 

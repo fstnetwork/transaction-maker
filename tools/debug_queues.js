@@ -31,4 +31,6 @@ Object.keys(map).forEach((k) => {
     });
 });
 
+console.log("addresses:", Object.keys(map).length);
+
 console.dir(map);
