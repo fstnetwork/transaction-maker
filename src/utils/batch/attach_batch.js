@@ -25,7 +25,7 @@ async function fire_attaches(attaches_missions) {
 
   const provider = await getProvider();
 
-  await Promise.all(
+  const txs = await Promise.all(
     attaches_missions.map((attach) => {
       const af = async () => {
         const publisher_wallet = attach.tag_info.publisher_wallet;
@@ -78,6 +78,8 @@ async function fire_attaches(attaches_missions) {
             );
           }
         });
+
+        return txhash;
       };
 
       return af();
@@ -85,6 +87,8 @@ async function fire_attaches(attaches_missions) {
   );
 
   await go(batch_name);
+
+  return txs;
 }
 
 module.exports = { fire_attaches };

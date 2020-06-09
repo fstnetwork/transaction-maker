@@ -3,7 +3,9 @@
 ## Mode pub_tag
 
 ```sh
-npm i https://github.com/fstnetwork/transaction-maker
+git clone https://github.com/fstnetwork/transaction-maker
+
+cd transaction-maker
 
 export MASTER_PK_HEX_STR=0xabcdef0123456789...
 
@@ -18,7 +20,9 @@ node src/index.js \
 ## Mode attach_tag
 
 ```sh
-npm i https://github.com/fstnetwork/transaction-maker
+git clone https://github.com/fstnetwork/transaction-maker
+
+cd transaction-maker
 
 node src/index.js \
   --mode attach_tag \
@@ -29,6 +33,10 @@ node src/index.js \
 ```
 
 ## Lib
+
+```
+npm i https://github.com/fstnetwork/transaction-maker
+```
 
 ### Mode pub_tag / attach_tag
 
