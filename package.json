@@ -1,6 +1,6 @@
 {
-  "name": "transaction-maker",
-  "version": "0.2.0",
+  "name": "@fstnetwork/transaction-maker",
+  "version": "0.3.0",
   "description": "",
   "main": "./dist/transaction_maker_lib.js",
   "scripts": {
