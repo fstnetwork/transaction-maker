@@ -1,9 +1,10 @@
 {
   "name": "transaction-maker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "",
-  "main": "./src/lib.js",
+  "main": "./dist/transaction_maker_lib.js",
   "scripts": {
+    "build": "rimraf ./dist && webpack --config webpack.config.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write ./**/*.json && prettier --write ./**/*.js",
     "pub_tag": "node src/index.js --mode pub_tag --root_dir ./ --tags ./csv_template/tag.csv --version_id 20200608",
@@ -34,6 +35,9 @@
   },
   "devDependencies": {
     "cross-env": "^7.0.2",
-    "prettier": "^2.0.5"
+    "prettier": "^2.0.5",
+    "rimraf": "^3.0.2",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
   }
 }
