@@ -22,7 +22,7 @@ async function publish_tags(new_tags, db_tag) {
 
   const provider = await getProvider();
 
-  await Promise.all(
+  const txs = await Promise.all(
     new_tags.map((tag) => {
       const af = async () => {
         const publisher_wallet = tag.publisher_wallet;
@@ -44,19 +44,7 @@ async function publish_tags(new_tags, db_tag) {
 
         const txhash = utils.parseTransaction(signed_tx).hash.toLowerCase();
 
-        provider.waitForTransaction(txhash, 1).then(async (receipt) => {
-          const tag_object = {
-            address: receipt.contractAddress.toLowerCase(),
-            publisher_address: publisher_wallet.address.toLowerCase(),
-            publisher_pk: publisher_wallet.privateKey,
-            publisher_id: tag.publisher_id,
-            tag_uniq_name: tag.tag_uniq_name,
-          };
-
-          await db_tag.put(tag.tag_uniq_name, JSON.stringify(tag_object));
-
-          consola.success("Deployed:", tag.tag_uniq_name);
-        });
+        return { txhash, tag, publisher_wallet };
       };
 
       return af();
@@ -64,6 +52,34 @@ async function publish_tags(new_tags, db_tag) {
   );
 
   await go(batch_name);
+
+  return await Promise.all(
+    txs.map(({ txhash, tag, publisher_wallet }) => {
+      return new Promise((res) => {
+        provider.waitForTransaction(txhash, 1).then(async (receipt) => {
+          if (receipt.status === 1) {
+            const tag_object = {
+              address: receipt.contractAddress.toLowerCase(),
+              publisher_address: publisher_wallet.address.toLowerCase(),
+              publisher_pk: publisher_wallet.privateKey,
+              publisher_id: tag.publisher_id,
+              tag_uniq_name: tag.tag_uniq_name,
+            };
+
+            await db_tag.put(tag.tag_uniq_name, JSON.stringify(tag_object));
+
+            consola.success("Deployed:", tag.tag_uniq_name);
+
+            res({ txhash, status: "successful" });
+          } else {
+            consola.success("Failed:", tag.tag_uniq_name);
+
+            res({ txhash, status: "failed" });
+          }
+        });
+      });
+    })
+  );
 }
 
 module.exports = { publish_tags };

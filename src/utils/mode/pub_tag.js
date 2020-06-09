@@ -165,7 +165,7 @@ async function modePubAndTag(argv, is_csv, tags_data) {
     );
     master_pk = JSON.parse(file_master_pk_json).master_pk;
   } catch (err) {
-    consola.error(err);
+    consola.warn(err);
   }
 
   if (master_pk === null) {

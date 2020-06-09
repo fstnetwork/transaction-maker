@@ -25,7 +25,7 @@ async function fire_attaches(attaches_missions) {
 
   const provider = await getProvider();
 
-  await Promise.all(
+  const txs = await Promise.all(
     attaches_missions.map((attach) => {
       const af = async () => {
         const publisher_wallet = attach.tag_info.publisher_wallet;
@@ -59,6 +59,18 @@ async function fire_attaches(attaches_missions) {
 
         const txhash = utils.parseTransaction(signed_tx).hash.toLowerCase();
 
+        return { txhash, attach };
+      };
+
+      return af();
+    })
+  );
+
+  await go(batch_name);
+
+  return await Promise.all(
+    txs.map(({ txhash, attach }) => {
+      return new Promise((res) => {
         provider.waitForTransaction(txhash, 1).then(async (receipt) => {
           if (receipt.status === 1) {
             consola.success(
@@ -68,6 +80,8 @@ async function fire_attaches(attaches_missions) {
               attach.to,
               attach.amount_dec
             );
+
+            res({ txhash, status: "successful" });
           } else {
             consola.error(
               "Error:",
@@ -77,14 +91,12 @@ async function fire_attaches(attaches_missions) {
               attach.amount_dec
             );
           }
-        });
-      };
 
-      return af();
+          res({ txhash, status: "failed" });
+        });
+      });
     })
   );
-
-  await go(batch_name);
 }
 
 module.exports = { fire_attaches };
