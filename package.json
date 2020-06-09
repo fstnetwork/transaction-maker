@@ -14,7 +14,7 @@
     "type": "git",
     "url": "git+https://github.com/fstnetwork/transaction-maker.git"
   },
-  "author": "",
+  "author": "FST NETWORK PTE. LTD.",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/fstnetwork/transaction-maker/issues"
