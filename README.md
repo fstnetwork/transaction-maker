@@ -35,7 +35,7 @@ node src/index.js \
 ## Lib
 
 ```
-npm i https://github.com/fstnetwork/transaction-maker
+npm i @fstnetwork/transaction-maker
 ```
 
 ### Mode pub_tag / attach_tag
