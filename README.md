@@ -53,7 +53,7 @@ One publisher can have many tags (but the best practice is still one publisher h
 `attach_from` can just be set to `"publisher"`
 
 ```javascript
-const { create_tags, attach_tags } = require("transaction-maker");
+const { create_tags, attach_tags } = require("@fstnetwork/transaction-maker");
 
 // creat tags first
 create_tags(
