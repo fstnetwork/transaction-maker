@@ -1,15 +1,11 @@
 const fs = require("fs");
 const path = require("path");
 
-const argv = require("../argv").argv();
-
 const consola = require("consola");
 const csv = require("csv-parser");
 const stripBom = require("strip-bom-stream");
 
 const { Wallet } = require("ethers");
-
-const level = require("level");
 
 const { get_bytes } = require("../rand");
 
@@ -153,10 +149,7 @@ async function check(argv, _tags, db_tag, db_pub, master_wallet) {
   await publish_tags(new_tags, db_tag);
 }
 
-async function modePubAndTag(argv, is_csv, tags_data) {
-  const db_pub = level(path.resolve(argv.root_dir, "level_db_pub"));
-  const db_tag = level(path.resolve(argv.root_dir, "level_db_tag"));
-
+async function modePubAndTag(argv, is_lib, tags_data, db_pub, db_tag) {
   let master_pk = null;
 
   try {
@@ -184,7 +177,7 @@ async function modePubAndTag(argv, is_csv, tags_data) {
     master_wallet.address.toLowerCase()
   );
 
-  if (is_csv === true) {
+  if (is_lib === true) {
     await check(argv, tags_data, db_tag, db_pub, master_wallet);
   } else {
     const tags = [];
