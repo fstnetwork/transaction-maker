@@ -1,15 +1,10 @@
 const fs = require("fs");
-const path = require("path");
-
-const argv = require("../argv").argv();
 
 const consola = require("consola");
 const csv = require("csv-parser");
 const stripBom = require("strip-bom-stream");
 
 const { Wallet } = require("ethers");
-
-const level = require("level");
 
 const { get_bytes } = require("../rand");
 
@@ -74,11 +69,8 @@ async function check(argv, _attaches, db_tag, db_pub) {
   await fire_attaches(attach_missions);
 }
 
-async function modeAttachTag(argv, is_csv, attaches_data) {
-  const db_pub = level(path.resolve(argv.root_dir, "level_db_pub"));
-  const db_tag = level(path.resolve(argv.root_dir, "level_db_tag"));
-
-  if (is_csv === true) {
+async function modeAttachTag(argv, is_lib, attaches_data, db_pub, db_tag) {
+  if (is_lib === true) {
     await check(argv, attaches_data, db_tag, db_pub);
   } else {
     const attaches = [];

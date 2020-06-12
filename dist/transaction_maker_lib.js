@@ -1,13 +1,13 @@
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("minimist"), require("fs"), require("path"), require("consola"), require("csv-parser"), require("strip-bom-stream"), require("ethers"), require("level"), require("bottleneck"), require("bignumber.js"), require("node-cache"));
+		module.exports = factory(require("path"), require("level"), require("minimist"), require("fs"), require("consola"), require("csv-parser"), require("strip-bom-stream"), require("ethers"), require("bottleneck"), require("bignumber.js"), require("node-cache"));
 	else if(typeof define === 'function' && define.amd)
-		define(["minimist", "fs", "path", "consola", "csv-parser", "strip-bom-stream", "ethers", "level", "bottleneck", "bignumber.js", "node-cache"], factory);
+		define(["path", "level", "minimist", "fs", "consola", "csv-parser", "strip-bom-stream", "ethers", "bottleneck", "bignumber.js", "node-cache"], factory);
 	else if(typeof exports === 'object')
-		exports["TransactionMaker"] = factory(require("minimist"), require("fs"), require("path"), require("consola"), require("csv-parser"), require("strip-bom-stream"), require("ethers"), require("level"), require("bottleneck"), require("bignumber.js"), require("node-cache"));
+		exports["TransactionMaker"] = factory(require("path"), require("level"), require("minimist"), require("fs"), require("consola"), require("csv-parser"), require("strip-bom-stream"), require("ethers"), require("bottleneck"), require("bignumber.js"), require("node-cache"));
 	else
-		root["TransactionMaker"] = factory(root["minimist"], root["fs"], root["path"], root["consola"], root["csv-parser"], root["strip-bom-stream"], root["ethers"], root["level"], root["bottleneck"], root["bignumber.js"], root["node-cache"]);
-})(global, function(__WEBPACK_EXTERNAL_MODULE__2__, __WEBPACK_EXTERNAL_MODULE__4__, __WEBPACK_EXTERNAL_MODULE__5__, __WEBPACK_EXTERNAL_MODULE__6__, __WEBPACK_EXTERNAL_MODULE__7__, __WEBPACK_EXTERNAL_MODULE__8__, __WEBPACK_EXTERNAL_MODULE__9__, __WEBPACK_EXTERNAL_MODULE__10__, __WEBPACK_EXTERNAL_MODULE__16__, __WEBPACK_EXTERNAL_MODULE__20__, __WEBPACK_EXTERNAL_MODULE__23__) {
+		root["TransactionMaker"] = factory(root["path"], root["level"], root["minimist"], root["fs"], root["consola"], root["csv-parser"], root["strip-bom-stream"], root["ethers"], root["bottleneck"], root["bignumber.js"], root["node-cache"]);
+})(global, function(__WEBPACK_EXTERNAL_MODULE__1__, __WEBPACK_EXTERNAL_MODULE__2__, __WEBPACK_EXTERNAL_MODULE__4__, __WEBPACK_EXTERNAL_MODULE__6__, __WEBPACK_EXTERNAL_MODULE__7__, __WEBPACK_EXTERNAL_MODULE__8__, __WEBPACK_EXTERNAL_MODULE__9__, __WEBPACK_EXTERNAL_MODULE__10__, __WEBPACK_EXTERNAL_MODULE__16__, __WEBPACK_EXTERNAL_MODULE__20__, __WEBPACK_EXTERNAL_MODULE__23__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -98,21 +98,40 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const { setOptions, argv } = __webpack_require__(1);
+const path = __webpack_require__(1);
+const level = __webpack_require__(2);
+
+const { setOptions, argv } = __webpack_require__(3);
+
+let db_pub = null;
+let db_tag = null;
+
+function setDB(argv) {
+  if (db_pub === null && db_tag === null) {
+    db_pub = level(path.resolve(argv.root_dir, "level_db_pub"));
+    db_tag = level(path.resolve(argv.root_dir, "level_db_tag"));
+  }
+
+  return [db_pub, db_tag];
+}
 
 async function create_tags(options, tags_data) {
   setOptions(options);
 
-  const { modePubAndTag } = __webpack_require__(3);
-  await modePubAndTag(argv(), true, tags_data);
+  const [_db_pub, _db_tag] = setDB(argv());
+
+  const { modePubAndTag } = __webpack_require__(5);
+  await modePubAndTag(argv(), true, tags_data, _db_pub, _db_tag);
   return true;
 }
 
 async function attach_tags(options, attaches_data) {
   setOptions(options);
 
+  const [_db_pub, _db_tag] = setDB(argv());
+
   const { modeAttachTag } = __webpack_require__(29);
-  await modeAttachTag(argv(), true, attaches_data);
+  await modeAttachTag(argv(), true, attaches_data, _db_pub, _db_tag);
   return true;
 }
 
@@ -124,13 +143,25 @@ module.exports = {
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE__1__;
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE__2__;
+
+/***/ }),
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 let options = null;
 
 function argv() {
   if (options === null) {
-    return __webpack_require__(2)(process.argv.slice(2));
+    return __webpack_require__(4)(process.argv.slice(2));
   } else {
     return options;
   }
@@ -147,27 +178,23 @@ module.exports = {
 
 
 /***/ }),
-/* 2 */
+/* 4 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE__2__;
+module.exports = __WEBPACK_EXTERNAL_MODULE__4__;
 
 /***/ }),
-/* 3 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const fs = __webpack_require__(4);
-const path = __webpack_require__(5);
+const fs = __webpack_require__(6);
+const path = __webpack_require__(1);
 
-const argv = __webpack_require__(1).argv();
+const consola = __webpack_require__(7);
+const csv = __webpack_require__(8);
+const stripBom = __webpack_require__(9);
 
-const consola = __webpack_require__(6);
-const csv = __webpack_require__(7);
-const stripBom = __webpack_require__(8);
-
-const { Wallet } = __webpack_require__(9);
-
-const level = __webpack_require__(10);
+const { Wallet } = __webpack_require__(10);
 
 const { get_bytes } = __webpack_require__(11);
 
@@ -311,10 +338,7 @@ async function check(argv, _tags, db_tag, db_pub, master_wallet) {
   await publish_tags(new_tags, db_tag);
 }
 
-async function modePubAndTag(argv, is_csv, tags_data) {
-  const db_pub = level(path.resolve(argv.root_dir, "level_db_pub"));
-  const db_tag = level(path.resolve(argv.root_dir, "level_db_tag"));
-
+async function modePubAndTag(argv, is_lib, tags_data, db_pub, db_tag) {
   let master_pk = null;
 
   try {
@@ -342,7 +366,7 @@ async function modePubAndTag(argv, is_csv, tags_data) {
     master_wallet.address.toLowerCase()
   );
 
-  if (is_csv === true) {
+  if (is_lib === true) {
     await check(argv, tags_data, db_tag, db_pub, master_wallet);
   } else {
     const tags = [];
@@ -363,18 +387,6 @@ async function modePubAndTag(argv, is_csv, tags_data) {
 
 module.exports = { modePubAndTag };
 
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE__4__;
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE__5__;
 
 /***/ }),
 /* 6 */
@@ -431,13 +443,13 @@ module.exports = require("crypto");
 /* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const consola = __webpack_require__(6);
+const consola = __webpack_require__(7);
 
 const { get_bytes } = __webpack_require__(11);
 
 const { getProvider } = __webpack_require__(14);
 
-const { Wallet } = __webpack_require__(9);
+const { Wallet } = __webpack_require__(10);
 
 const { acc, go } = __webpack_require__(15);
 
@@ -498,11 +510,11 @@ module.exports = { scan_publishers_and_fill_resource };
 /* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const consola = __webpack_require__(6);
+const consola = __webpack_require__(7);
 
-const ethers = __webpack_require__(9);
+const ethers = __webpack_require__(10);
 
-const argv = __webpack_require__(1).argv();
+const argv = __webpack_require__(3).argv();
 
 const json_rpc_url = argv.jsonrpc_http;
 
@@ -542,9 +554,9 @@ module.exports = {
 /* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const consola = __webpack_require__(6);
+const consola = __webpack_require__(7);
 
-const { utils } = __webpack_require__(9);
+const { utils } = __webpack_require__(10);
 
 const Bottleneck = __webpack_require__(16);
 
@@ -912,7 +924,7 @@ module.exports = { estimateGasPromise };
 /* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const consola = __webpack_require__(6);
+const consola = __webpack_require__(7);
 
 const Bottleneck = __webpack_require__(16);
 
@@ -973,13 +985,13 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__23__;
 /* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const consola = __webpack_require__(6);
+const consola = __webpack_require__(7);
 
 const { get_bytes } = __webpack_require__(11);
 
 const { getProvider } = __webpack_require__(14);
 
-const { utils } = __webpack_require__(9);
+const { utils } = __webpack_require__(10);
 
 const { acc, go } = __webpack_require__(15);
 
@@ -1217,7 +1229,7 @@ module.exports = {
 /* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const { ContractFactory } = __webpack_require__(9);
+const { ContractFactory } = __webpack_require__(10);
 
 const abi = __webpack_require__(27);
 const bytecode = __webpack_require__(28);
@@ -1599,18 +1611,13 @@ module.exports = `0x60806040523480156200001157600080fd5b5060405162000dd138038062
 /* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const fs = __webpack_require__(4);
-const path = __webpack_require__(5);
+const fs = __webpack_require__(6);
 
-const argv = __webpack_require__(1).argv();
+const consola = __webpack_require__(7);
+const csv = __webpack_require__(8);
+const stripBom = __webpack_require__(9);
 
-const consola = __webpack_require__(6);
-const csv = __webpack_require__(7);
-const stripBom = __webpack_require__(8);
-
-const { Wallet } = __webpack_require__(9);
-
-const level = __webpack_require__(10);
+const { Wallet } = __webpack_require__(10);
 
 const { get_bytes } = __webpack_require__(11);
 
@@ -1675,11 +1682,8 @@ async function check(argv, _attaches, db_tag, db_pub) {
   await fire_attaches(attach_missions);
 }
 
-async function modeAttachTag(argv, is_csv, attaches_data) {
-  const db_pub = level(path.resolve(argv.root_dir, "level_db_pub"));
-  const db_tag = level(path.resolve(argv.root_dir, "level_db_tag"));
-
-  if (is_csv === true) {
+async function modeAttachTag(argv, is_lib, attaches_data, db_pub, db_tag) {
+  if (is_lib === true) {
     await check(argv, attaches_data, db_tag, db_pub);
   } else {
     const attaches = [];
@@ -1705,13 +1709,13 @@ module.exports = { modeAttachTag };
 /* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const consola = __webpack_require__(6);
+const consola = __webpack_require__(7);
 
 const { get_bytes } = __webpack_require__(11);
 
 const { getProvider } = __webpack_require__(14);
 
-const { utils } = __webpack_require__(9);
+const { utils } = __webpack_require__(10);
 
 const { acc, go } = __webpack_require__(15);
 
