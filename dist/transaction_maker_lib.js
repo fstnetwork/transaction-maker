@@ -157,6 +157,10 @@ const consola = __webpack_require__(2);
 let logger = null;
 
 function setLogger(argv) {
+  if (logger !== null) {
+    return logger;
+  }
+
   if (argv.logger === undefined || argv.logger === null) {
     logger = console;
 
@@ -167,7 +171,11 @@ function setLogger(argv) {
     logger = consola;
   }
 
-  if (argv.logger !== undefined && argv.logger !== null) {
+  if (
+    argv.logger !== undefined &&
+    argv.logger !== null &&
+    argv.logger !== "default"
+  ) {
     logger = argv.logger;
   }
 
