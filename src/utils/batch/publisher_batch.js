@@ -1,5 +1,3 @@
-const consola = require("consola");
-
 const { get_bytes } = require("../rand");
 
 const { getProvider } = require("../tx/rpc");
@@ -12,7 +10,8 @@ const { makeUnsignedTransactionObjectPromise } = require("../tx/tx_obj_maker");
 
 async function scan_publishers_and_fill_resource(
   publishers_map,
-  master_wallet
+  master_wallet,
+  logger
 ) {
   const batch_name = get_bytes(8);
 
@@ -27,7 +26,7 @@ async function scan_publishers_and_fill_resource(
           const publisher_eth_balance = await publisher_wallet.getBalance();
 
           if (publisher_eth_balance.lt("5000000000000000000")) {
-            consola.info(
+            logger.info(
               "Less than 5 ETH:",
               publisher_wallet.address.toLowerCase()
             );
@@ -45,7 +44,7 @@ async function scan_publishers_and_fill_resource(
 
             await acc(batch_name, signed_tx, false);
           } else {
-            consola.success("ETH OK:", publisher_wallet.address.toLowerCase());
+            logger.success("ETH OK:", publisher_wallet.address.toLowerCase());
           }
 
           return 0;

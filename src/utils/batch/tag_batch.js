@@ -1,5 +1,3 @@
-const consola = require("consola");
-
 const { get_bytes } = require("../rand");
 
 const { getProvider } = require("../tx/rpc");
@@ -12,9 +10,9 @@ const { makeUnsignedTransactionObjectPromise } = require("../tx/tx_obj_maker");
 
 const { encodeTagDeploy } = require("../tx/abi_encode");
 
-async function publish_tags(new_tags, db_tag) {
+async function publish_tags(new_tags, db_tag, logger) {
   if (new_tags.length === 0) {
-    consola.success("No new tag");
+    logger.success("No new tag");
     return [];
   }
 
@@ -40,7 +38,7 @@ async function publish_tags(new_tags, db_tag) {
 
         await acc(batch_name, signed_tx, false);
 
-        consola.info("Pending:", tag.tag_uniq_name);
+        logger.info("Pending:", tag.tag_uniq_name);
 
         const txhash = utils.parseTransaction(signed_tx).hash.toLowerCase();
 
@@ -68,11 +66,11 @@ async function publish_tags(new_tags, db_tag) {
 
             await db_tag.put(tag.tag_uniq_name, JSON.stringify(tag_object));
 
-            consola.success("Deployed:", tag.tag_uniq_name);
+            logger.success("Deployed:", tag.tag_uniq_name);
 
             res({ txhash, status: "successful" });
           } else {
-            consola.success("Failed:", tag.tag_uniq_name);
+            logger.success("Failed:", tag.tag_uniq_name);
 
             res({ txhash, status: "failed" });
           }

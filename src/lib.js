@@ -1,33 +1,31 @@
-const path = require("path");
-const level = require("level");
+const { setLogger } = require("./utils/logger");
 
 const { setOptions, argv } = require("./utils/argv");
 
-let db_pub = null;
-let db_tag = null;
-
-function setDB(argv) {
-  if (db_pub === null && db_tag === null) {
-    db_pub = level(path.resolve(argv.root_dir, "level_db_pub"));
-    db_tag = level(path.resolve(argv.root_dir, "level_db_tag"));
-  }
-
-  return [db_pub, db_tag];
-}
+const { setDB } = require("./utils/db");
 
 async function create_tags(options, tags_data) {
   setOptions(options);
+  const logger = setLogger(argv());
 
   const [_db_pub, _db_tag] = setDB(argv());
 
   const { modePubAndTag } = require("./utils/mode/pub_tag");
-  const result = await modePubAndTag(argv(), true, tags_data, _db_pub, _db_tag);
+  const result = await modePubAndTag(
+    argv(),
+    true,
+    tags_data,
+    _db_pub,
+    _db_tag,
+    logger
+  );
 
   return result.filter((o) => o.status === "successful").map((o) => o.txhash);
 }
 
 async function attach_tags(options, attaches_data) {
   setOptions(options);
+  const logger = setLogger(argv());
 
   const [_db_pub, _db_tag] = setDB(argv());
 
@@ -37,7 +35,8 @@ async function attach_tags(options, attaches_data) {
     true,
     attaches_data,
     _db_pub,
-    _db_tag
+    _db_tag,
+    logger
   );
 
   return result.filter((o) => o.status === "successful").map((o) => o.txhash);

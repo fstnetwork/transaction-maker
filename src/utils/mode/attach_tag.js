@@ -1,6 +1,5 @@
 const fs = require("fs");
 
-const consola = require("consola");
 const csv = require("csv-parser");
 const stripBom = require("strip-bom-stream");
 
@@ -10,7 +9,7 @@ const { get_bytes } = require("../rand");
 
 const { fire_attaches } = require("../batch/attach_batch");
 
-async function check(argv, _attaches, db_tag, db_pub) {
+async function check(argv, _attaches, db_tag, db_pub, logger) {
   let version_id = argv.version_id + "";
   if (version_id === "rand") {
     version_id = get_bytes(4);
@@ -50,28 +49,42 @@ async function check(argv, _attaches, db_tag, db_pub) {
   ]);
 
   const attach_missions = _attaches.map((attach) => {
-    const tag_info = JSON.parse(
-      tag_in_db_map[attach.tag_uniq_name + ":" + version_id]
-    );
+    try {
+      const tag_info = JSON.parse(
+        tag_in_db_map[attach.tag_uniq_name + ":" + version_id]
+      );
 
-    tag_info.publisher_wallet = new Wallet(tag_info.publisher_pk);
+      tag_info.publisher_wallet = new Wallet(tag_info.publisher_pk);
 
-    return {
-      tag_info,
-      from: attach.attach_from,
-      to: attach.attach_to,
-      amount_dec: (attach.attach_amount === "" ? 0 : attach.attach_amount) + "",
-    };
+      return {
+        tag_info,
+        from: attach.attach_from,
+        to: attach.attach_to,
+        amount_dec:
+          (attach.attach_amount === "" ? 0 : attach.attach_amount) + "",
+      };
+    } catch (err) {
+      logger.error("tag info error or not found in leveldb\n", attach);
+
+      return null;
+    }
   });
 
-  //   consola.info(attach_missions);
+  const _attach_missions = attach_missions.filter((m) => m !== null);
 
-  return await fire_attaches(attach_missions);
+  return await fire_attaches(_attach_missions, logger);
 }
 
-async function modeAttachTag(argv, is_lib, attaches_data, db_pub, db_tag) {
+async function modeAttachTag(
+  argv,
+  is_lib,
+  attaches_data,
+  db_pub,
+  db_tag,
+  logger
+) {
   if (is_lib === true) {
-    return await check(argv, attaches_data, db_tag, db_pub);
+    return await check(argv, attaches_data, db_tag, db_pub, logger);
   } else {
     const attaches = [];
 
@@ -81,8 +94,8 @@ async function modeAttachTag(argv, is_lib, attaches_data, db_pub, db_tag) {
         .pipe(csv())
         .on("data", (data) => attaches.push(data))
         .on("end", async () => {
-          consola.success("Attaches are loaded");
-          res(check(argv, attaches, db_tag, db_pub));
+          logger.success("Attaches are loaded");
+          res(check(argv, attaches, db_tag, db_pub, logger));
         });
     });
   }
