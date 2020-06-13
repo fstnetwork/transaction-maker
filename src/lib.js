@@ -21,8 +21,9 @@ async function create_tags(options, tags_data) {
   const [_db_pub, _db_tag] = setDB(argv());
 
   const { modePubAndTag } = require("./utils/mode/pub_tag");
-  await modePubAndTag(argv(), true, tags_data, _db_pub, _db_tag);
-  return true;
+  const result = await modePubAndTag(argv(), true, tags_data, _db_pub, _db_tag);
+
+  return result.filter((o) => o.status === "successful").map((o) => o.txhash);
 }
 
 async function attach_tags(options, attaches_data) {
@@ -31,8 +32,15 @@ async function attach_tags(options, attaches_data) {
   const [_db_pub, _db_tag] = setDB(argv());
 
   const { modeAttachTag } = require("./utils/mode/attach_tag");
-  await modeAttachTag(argv(), true, attaches_data, _db_pub, _db_tag);
-  return true;
+  const result = await modeAttachTag(
+    argv(),
+    true,
+    attaches_data,
+    _db_pub,
+    _db_tag
+  );
+
+  return result.filter((o) => o.status === "successful").map((o) => o.txhash);
 }
 
 module.exports = {
