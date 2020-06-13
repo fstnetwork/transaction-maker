@@ -15,7 +15,7 @@ const { encodeTagDeploy } = require("../tx/abi_encode");
 async function publish_tags(new_tags, db_tag) {
   if (new_tags.length === 0) {
     consola.success("No new tag");
-    return;
+    return [];
   }
 
   const batch_name = get_bytes(8);
