@@ -1,4 +1,5 @@
-const consola = require("consola");
+const { getLogger } = require("../logger");
+const logger = getLogger();
 
 const Bottleneck = require("bottleneck");
 
@@ -28,12 +29,12 @@ async function internal_get_nonce_from_cache(address) {
     );
     nonces.set(address, tmpNonce + 1);
     nonces.ttl(address, 3600);
-    consola.info("Get nonce:", address, tmpNonce);
+    logger.info("Get nonce:", address, tmpNonce);
     return tmpNonce;
   } else {
     nonces.set(address, nonce + 1);
     nonces.ttl(address, 3600);
-    consola.info("Get nonce:", address, nonce);
+    logger.info("Get nonce:", address, nonce);
     return nonce;
   }
 }

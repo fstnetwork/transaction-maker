@@ -1,4 +1,5 @@
-const consola = require("consola");
+const { getLogger } = require("../logger");
+const logger = getLogger();
 
 const ethers = require("ethers");
 
@@ -6,7 +7,7 @@ const argv = require("../argv").argv();
 
 const json_rpc_url = argv.jsonrpc_http;
 
-consola.success("JSON RPC:", json_rpc_url);
+logger.success("JSON RPC:", json_rpc_url);
 
 let networkId = null;
 
@@ -19,7 +20,7 @@ const provider = new ethers.providers.FallbackProvider([
 ]);
 
 async function getProvider() {
-  // consola.info(provider.providers.length, "getProvider()");
+  // logger.info(provider.providers.length, "getProvider()");
   return provider;
 }
 

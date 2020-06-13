@@ -61,6 +61,7 @@ create_tags(
     version_id: "abc",
     root_dir: process.cwd(),
     jsonrpc_http: "[ETH_JSON_RPC_URL]",
+    logger: "default",
   },
   [
     { publisher_id: "def", tag_uniq_name: "abcdef" },
@@ -74,6 +75,7 @@ attach_tags(
     version_id: "abc",
     root_dir: process.cwd(),
     jsonrpc_http: "[ETH_JSON_RPC_URL]",
+    logger: "default",
   },
   [
     {

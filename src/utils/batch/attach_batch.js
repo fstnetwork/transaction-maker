@@ -1,5 +1,3 @@
-const consola = require("consola");
-
 const { get_bytes } = require("../rand");
 
 const { getProvider } = require("../tx/rpc");
@@ -15,10 +13,10 @@ const {
   encodeTransferToken,
 } = require("../tx/abi_encode");
 
-async function fire_attaches(attaches_missions) {
+async function fire_attaches(attaches_missions, logger) {
   if (attaches_missions.length === 0) {
-    consola.success("No new attach");
-    return;
+    logger.success("No new attach");
+    return [];
   }
 
   const batch_name = get_bytes(8);
@@ -49,7 +47,7 @@ async function fire_attaches(attaches_missions) {
 
         await acc(batch_name, signed_tx, false);
 
-        consola.info(
+        logger.info(
           "Pending:",
           attach.tag_info.tag_uniq_name,
           attach.from,
@@ -73,7 +71,7 @@ async function fire_attaches(attaches_missions) {
       return new Promise((res) => {
         provider.waitForTransaction(txhash, 1).then(async (receipt) => {
           if (receipt.status === 1) {
-            consola.success(
+            logger.success(
               "Confirmed:",
               attach.tag_info.tag_uniq_name,
               attach.from,
@@ -83,7 +81,7 @@ async function fire_attaches(attaches_missions) {
 
             res({ txhash, status: "successful" });
           } else {
-            consola.error(
+            logger.error(
               "Error:",
               attach.tag_info.tag_uniq_name,
               attach.from,

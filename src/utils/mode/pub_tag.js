@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 
-const consola = require("consola");
 const csv = require("csv-parser");
 const stripBom = require("strip-bom-stream");
 
@@ -15,7 +14,7 @@ const {
 
 const { publish_tags } = require("../batch/tag_batch");
 
-async function check(argv, _tags, db_tag, db_pub, master_wallet) {
+async function check(argv, _tags, db_tag, db_pub, master_wallet, logger) {
   let version_id = argv.version_id + "";
   if (version_id === "rand") {
     version_id = get_bytes(4);
@@ -105,7 +104,7 @@ async function check(argv, _tags, db_tag, db_pub, master_wallet) {
       };
     })
     .forEach((p) => {
-      consola.info("New publisher:", p.id, p.address);
+      logger.info("New publisher:", p.id, p.address);
     });
 
   new_tags
@@ -117,7 +116,7 @@ async function check(argv, _tags, db_tag, db_pub, master_wallet) {
       };
     })
     .forEach((t) => {
-      consola.info(
+      logger.info(
         "New tag:",
         t.tag_uniq_name,
         t.publisher_id,
@@ -143,13 +142,14 @@ async function check(argv, _tags, db_tag, db_pub, master_wallet) {
 
   await scan_publishers_and_fill_resource(
     after_import_pub_in_db_map,
-    master_wallet
+    master_wallet,
+    logger
   );
 
-  return await publish_tags(new_tags, db_tag);
+  return await publish_tags(new_tags, db_tag, logger);
 }
 
-async function modePubAndTag(argv, is_lib, tags_data, db_pub, db_tag) {
+async function modePubAndTag(argv, is_lib, tags_data, db_pub, db_tag, logger) {
   let master_pk = null;
 
   try {
@@ -158,12 +158,12 @@ async function modePubAndTag(argv, is_lib, tags_data, db_pub, db_tag) {
     );
     master_pk = JSON.parse(file_master_pk_json).master_pk;
   } catch (err) {
-    consola.warn(err);
+    logger.warn(err);
   }
 
   if (master_pk === null) {
     if (process.env.MASTER_PK_HEX_STR === undefined) {
-      consola.error("no MASTER_PK_HEX_STR env is assigned");
+      logger.error("no MASTER_PK_HEX_STR env is assigned");
       process.exit(1);
     } else {
       master_pk = process.env.MASTER_PK_HEX_STR;
@@ -172,13 +172,10 @@ async function modePubAndTag(argv, is_lib, tags_data, db_pub, db_tag) {
 
   const master_wallet = new Wallet(master_pk);
 
-  consola.success(
-    "Master wallet address:",
-    master_wallet.address.toLowerCase()
-  );
+  logger.success("Master wallet address:", master_wallet.address.toLowerCase());
 
   if (is_lib === true) {
-    return await check(argv, tags_data, db_tag, db_pub, master_wallet);
+    return await check(argv, tags_data, db_tag, db_pub, master_wallet, logger);
   } else {
     const tags = [];
 
@@ -188,8 +185,8 @@ async function modePubAndTag(argv, is_lib, tags_data, db_pub, db_tag) {
         .pipe(csv())
         .on("data", (data) => tags.push(data))
         .on("end", async () => {
-          consola.success("Tags are loaded");
-          res(check(argv, tags, db_tag, db_pub, master_wallet));
+          logger.success("Tags are loaded");
+          res(check(argv, tags, db_tag, db_pub, master_wallet, logger));
         });
     });
   }

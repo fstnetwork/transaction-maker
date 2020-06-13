@@ -1,4 +1,5 @@
-const consola = require("consola");
+const { getLogger } = require("../logger");
+const logger = getLogger();
 
 const { utils } = require("ethers");
 
@@ -67,7 +68,7 @@ async function acc(batch_name, signed_tx, eager) {
 
     return await limiterMap[from_prefix].schedule(() => accf());
   } catch (err) {
-    consola.error("acc", batch_name, signed_tx, err);
+    logger.error("acc", batch_name, signed_tx, err);
     throw err;
   }
 }
@@ -86,7 +87,7 @@ async function go_eager_queue(queueObj, batch_name) {
 
         await submitSignedTransactionAsyncPromise(qp.signed_tx, null);
 
-        consola.info(
+        logger.info(
           "Go eager:",
           batch_name,
           qp.txobj.from.toLowerCase(),
@@ -95,11 +96,11 @@ async function go_eager_queue(queueObj, batch_name) {
       } catch (_) {}
     }
 
-    consola.info("Go eager:", batch_name, "done");
+    logger.info("Go eager:", batch_name, "done");
 
     return true;
   } catch (err) {
-    consola.error("Go eager:", queueObj);
+    logger.error("Go eager:", queueObj);
     throw err;
   }
 }
@@ -134,7 +135,7 @@ async function go(batch_name) {
 
               await submitSignedTransactionAsyncPromise(qp.signed_tx, null);
 
-              consola.info(
+              logger.info(
                 "Go:",
                 batch_name,
                 qp.txobj.from.toLowerCase(),
@@ -146,11 +147,11 @@ async function go(batch_name) {
       })
     );
 
-    consola.success("Go:", batch_name, "done");
+    logger.success("Go:", batch_name, "done");
 
     return true;
   } catch (err) {
-    consola.error("Go:", batch_name, err);
+    logger.error("Go:", batch_name, err);
   }
 }
 
