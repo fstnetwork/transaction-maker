@@ -66,24 +66,23 @@ async function check(argv, _attaches, db_tag, db_pub) {
 
   //   consola.info(attach_missions);
 
-  await fire_attaches(attach_missions);
+  return await fire_attaches(attach_missions);
 }
 
 async function modeAttachTag(argv, is_lib, attaches_data, db_pub, db_tag) {
   if (is_lib === true) {
-    await check(argv, attaches_data, db_tag, db_pub);
+    return await check(argv, attaches_data, db_tag, db_pub);
   } else {
     const attaches = [];
 
-    await new Promise((res) => {
+    return await new Promise((res) => {
       fs.createReadStream(argv.attaches)
         .pipe(stripBom())
         .pipe(csv())
         .on("data", (data) => attaches.push(data))
         .on("end", async () => {
           consola.success("Attaches are loaded");
-          await check(argv, attaches, db_tag, db_pub);
-          res(true);
+          res(check(argv, attaches, db_tag, db_pub));
         });
     });
   }

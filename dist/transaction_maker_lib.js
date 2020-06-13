@@ -121,8 +121,9 @@ async function create_tags(options, tags_data) {
   const [_db_pub, _db_tag] = setDB(argv());
 
   const { modePubAndTag } = __webpack_require__(5);
-  await modePubAndTag(argv(), true, tags_data, _db_pub, _db_tag);
-  return true;
+  const result = await modePubAndTag(argv(), true, tags_data, _db_pub, _db_tag);
+
+  return result.filter((o) => o.status === "successful").map((o) => o.txhash);
 }
 
 async function attach_tags(options, attaches_data) {
@@ -131,8 +132,15 @@ async function attach_tags(options, attaches_data) {
   const [_db_pub, _db_tag] = setDB(argv());
 
   const { modeAttachTag } = __webpack_require__(29);
-  await modeAttachTag(argv(), true, attaches_data, _db_pub, _db_tag);
-  return true;
+  const result = await modeAttachTag(
+    argv(),
+    true,
+    attaches_data,
+    _db_pub,
+    _db_tag
+  );
+
+  return result.filter((o) => o.status === "successful").map((o) => o.txhash);
 }
 
 module.exports = {
@@ -335,7 +343,7 @@ async function check(argv, _tags, db_tag, db_pub, master_wallet) {
     master_wallet
   );
 
-  await publish_tags(new_tags, db_tag);
+  return await publish_tags(new_tags, db_tag);
 }
 
 async function modePubAndTag(argv, is_lib, tags_data, db_pub, db_tag) {
@@ -367,19 +375,18 @@ async function modePubAndTag(argv, is_lib, tags_data, db_pub, db_tag) {
   );
 
   if (is_lib === true) {
-    await check(argv, tags_data, db_tag, db_pub, master_wallet);
+    return await check(argv, tags_data, db_tag, db_pub, master_wallet);
   } else {
     const tags = [];
 
-    await new Promise((res) => {
+    return await new Promise((res) => {
       fs.createReadStream(argv.tags)
         .pipe(stripBom())
         .pipe(csv())
         .on("data", (data) => tags.push(data))
         .on("end", async () => {
           consola.success("Tags are loaded");
-          await check(argv, tags, db_tag, db_pub, master_wallet);
-          res(true);
+          res(check(argv, tags, db_tag, db_pub, master_wallet));
         });
     });
   }
@@ -1679,24 +1686,23 @@ async function check(argv, _attaches, db_tag, db_pub) {
 
   //   consola.info(attach_missions);
 
-  await fire_attaches(attach_missions);
+  return await fire_attaches(attach_missions);
 }
 
 async function modeAttachTag(argv, is_lib, attaches_data, db_pub, db_tag) {
   if (is_lib === true) {
-    await check(argv, attaches_data, db_tag, db_pub);
+    return await check(argv, attaches_data, db_tag, db_pub);
   } else {
     const attaches = [];
 
-    await new Promise((res) => {
+    return await new Promise((res) => {
       fs.createReadStream(argv.attaches)
         .pipe(stripBom())
         .pipe(csv())
         .on("data", (data) => attaches.push(data))
         .on("end", async () => {
           consola.success("Attaches are loaded");
-          await check(argv, attaches, db_tag, db_pub);
-          res(true);
+          res(check(argv, attaches, db_tag, db_pub));
         });
     });
   }
